@@ -5,6 +5,7 @@ const afterAuthRedirect = process.env.ARC_OAUTH_AFTER_AUTH || '/'
 const customAuthorize = process.env.ARC_OAUTH_CUSTOM_AUTHORIZE
 export const handler = arc.http.async(auth)
 const useAllowList = process.env.ARC_OAUTH_USE_ALLOW_LIST
+const unAuthRedirect = process.env.ARC_OAUTH_UN_AUTH_REDIRECT || '/login'
 
 async function auth(req) {
   const {
@@ -52,7 +53,7 @@ async function auth(req) {
   } else {
     return {
       statusCode: 302,
-      location: '/login'
+      location: unAuthRedirect
     }
   }
 }

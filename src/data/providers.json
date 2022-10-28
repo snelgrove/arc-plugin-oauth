@@ -1,0 +1,18 @@
+{
+    "github": {
+        "endpoints": {
+            "OAUTH_AUTHORIZATION_URI": "https://github.com/login/oauth/authorize",
+            "OAUTH_TOKEN_URI": "https://github.com/login/oauth/access_token",
+            "OAUTH_USER_INFO_URI": "https://api.github.com/user"                         
+        },
+        "OAUTH_DEFAULT_SCOPES": "read:user"
+    },
+    "google": {
+        "endpoints": {                                                    
+            "OAUTH_AUTHORIZATION_URI": "https://accounts.google.com/o/oauth2/v2/auth?prompt=consent&response_type=code&access_type=offline",
+            "OAUTH_TOKEN_URI": "https://oauth2.googleapis.com/token",
+            "OAUTH_USER_INFO_URI": "https://openidconnect.googleapis.com/v1/userinfo"
+        },
+        "OAUTH_DEFAULT_SCOPES": "email profile"
+    }
+}

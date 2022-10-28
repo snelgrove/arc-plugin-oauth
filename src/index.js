@@ -1,11 +1,11 @@
 const { URL } = require('node:url')
+const providers = require('./data/providers.json')
 
 module.exports = {
   loginHref: function (req) {
     const redirectAfterAuth = req?.session?.redirectAfterAuth
-
-    const redirectUrlPart = process.env.ARC_OAUTH_REDIRECT_URL
-      ? `&redirect_uri=${process.env.ARC_OAUTH_REDIRECT_URL}`
+    const redirectUrl = process.env.ARC_OAUTH_REDIRECT_URL
+      ? process.env.ARC_OAUTH_REDIRECT_URL
       : ''
     if (process.env.ARC_OAUTH_USE_MOCK)
       return `http://localhost:3333/mock/auth/login${
@@ -15,16 +15,20 @@ module.exports = {
             )}`
           : ''
       }`
-    else
-      return `https://github.com/login/oauth/authorize?client_id=${
-        process.env.ARC_OAUTH_CLIENT_ID
-      }${redirectUrlPart}${
-        redirectAfterAuth
-          ? `&state=${encodeURIComponent(
-              JSON.stringify({ redirectAfterAuth })
-            )}`
-          : ''
-      }`
+    else {
+      const authUrl = new URL(process.env.ARC_OAUTH_AUTHORIZATION_URI)
+      authUrl.searchParams.append('client_id', process.env.ARC_OAUTH_CLIENT_ID)
+      authUrl.searchParams.append(
+        'redirect_uri',
+        process.env.ARC_OAUTH_REDIRECT_URL
+      )
+      authUrl.searchParams.append(
+        'scope',
+        process.env?.ARC_OAUTH_SCOPES ?? process.env.ARC_OAUTH_DEFAULT_SCOPES
+      )
+      authUrl.searchParams.append('state', redirectUrl)
+      return authUrl.href
+    }
   },
   checkAuth: function (req) {
     return req?.session?.account
@@ -39,6 +43,8 @@ module.exports = {
   },
   set: {
     env: ({ arc }) => {
+      const provider = arc.oauth.find((i) => i[0] == 'provider')?.[1]
+
       const afterAuthRedirect = arc.oauth.find(
         (i) => i[0] === 'after-auth-redirect'
       )?.[1]
@@ -71,6 +77,7 @@ module.exports = {
       const loginUrl = new URL(`${routePrefix}/login`, 'http://localhost:3333')
       const authUrl = new URL(`${routePrefix}/auth`, 'http://localhost:3333')
       const testing = {
+        ARC_OAUTH_PROVIDER: provider ? provider : 'github',
         ARC_OAUTH_AFTER_AUTH: afterAuthRedirect ? afterAuthRedirect : '/',
         ARC_OAUTH_CUSTOM_AUTHORIZE: customAuthorize ? customAuthorize : '',
         ARC_OAUTH_UN_AUTH_REDIRECT: unAuthRedirect
@@ -83,8 +90,12 @@ module.exports = {
         ARC_OAUTH_ALLOW_LIST: allowList,
         ARC_OAUTH_ROUTE_PREFIX: routePrefix,
         ARC_OAUTH_AUTH_URI: authUrl.href,
-        ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
-        ARC_OAUTH_USER_INFO_URI: `https://api.github.com/user`
+        ARC_OAUTH_TOKEN_URI: providers[provider].endpoints.OAUTH_TOKEN_URI,
+        ARC_OAUTH_USER_INFO_URI:
+          providers[provider].endpoints.OAUTH_USER_INFO_URI,
+        ARC_OAUTH_AUTHORIZATION_URI:
+          providers[provider].endpoints.OAUTH_AUTHORIZATION_URI,
+        ARC_OAUTH_DEFAULT_SCOPES: providers[provider].OAUTH_DEFAULT_SCOPES
       }
       if (useMock) {
         testing.ARC_OAUTH_TOKEN_URI = `http://localhost:3333/mock/auth/token`
@@ -95,6 +106,7 @@ module.exports = {
       return {
         testing,
         staging: {
+          ARC_OAUTH_PROVIDER: provider ? provider : 'github',
           ARC_OAUTH_INCLUDE_PROPERTIES: includeProperties,
           ARC_OAUTH_CUSTOM_AUTHORIZE: customAuthorize ? customAuthorize : '',
           ARC_OAUTH_MATCH_PROPERTY: matchProperty,
@@ -105,10 +117,15 @@ module.exports = {
           ARC_OAUTH_USE_ALLOW_LIST: useAllowList ? 'true' : '',
           ARC_OAUTH_ALLOW_LIST: allowList,
           ARC_OAUTH_ROUTE_PREFIX: routePrefix,
-          ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
-          ARC_OAUTH_USER_INFO_URI: 'https://api.github.com/user'
+          ARC_OAUTH_TOKEN_URI: providers[provider].endpoints.OAUTH_TOKEN_URI,
+          ARC_OAUTH_USER_INFO_URI:
+            providers[provider].endpoints.OAUTH_USER_INFO_URI,
+          ARC_OAUTH_AUTHORIZATION_URI:
+            providers[provider].endpoints.OAUTH_AUTHORIZATION_URI,
+          ARC_OAUTH_DEFAULT_SCOPES: providers[provider].OAUTH_DEFAULT_SCOPES
         },
         production: {
+          ARC_OAUTH_PROVIDER: provider ? provider : 'github',
           ARC_OAUTH_INCLUDE_PROPERTIES: includeProperties,
           ARC_OAUTH_CUSTOM_AUTHORIZE: customAuthorize ? customAuthorize : '',
           ARC_OAUTH_MATCH_PROPERTY: matchProperty,
@@ -119,8 +136,12 @@ module.exports = {
           ARC_OAUTH_USE_ALLOW_LIST: useAllowList ? 'true' : '',
           ARC_OAUTH_ALLOW_LIST: allowList,
           ARC_OAUTH_ROUTE_PREFIX: routePrefix,
-          ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
-          ARC_OAUTH_USER_INFO_URI: 'https://api.github.com/user'
+          ARC_OAUTH_TOKEN_URI: providers[provider].endpoints.OAUTH_TOKEN_URI,
+          ARC_OAUTH_USER_INFO_URI:
+            providers[provider].endpoints.OAUTH_USER_INFO_URI,
+          ARC_OAUTH_AUTHORIZATION_URI:
+            providers[provider].endpoints.OAUTH_AUTHORIZATION_URI,
+          ARC_OAUTH_DEFAULT_SCOPES: providers[provider].OAUTH_DEFAULT_SCOPES
         }
       }
     },

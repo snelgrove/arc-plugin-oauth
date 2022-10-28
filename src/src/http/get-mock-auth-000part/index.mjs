@@ -54,7 +54,7 @@ async function getToken(req) {
 async function getUserInfo(req) {
   if (req.params.part === 'user') {
     let mockAllowList = (await mockAllowListPromise).default
-    const token = req.headers.authorization.replace('token ', '')
+    const token = req.headers.authorization.replace('Bearer ', '')
     const userReference = Buffer.from(token, 'base64').toString('ascii')
     const user = mockAllowList.mockProviderAccounts[userReference]
 

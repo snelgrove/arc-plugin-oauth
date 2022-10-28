@@ -6,7 +6,7 @@ async function login(req) {
   const href = loginHref(req)
   return {
     statusCode: 200,
-    html: `<a href="${href}">Login with Github</a>`
+    html: `<a href="${href}">Login with OAuth</a>`
   }
 }
 

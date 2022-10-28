@@ -3,7 +3,7 @@ const baseUrl = 'http://localhost:3333'
 
 test('basic mock login', async ({ page }) => {
   await page.goto(`${baseUrl}`)
-  const login = await page.locator('text=Github')
+  const login = await page.locator('text=OAuth')
   await login.click()
   const user = await page.locator('text=Jane Doe')
   await user.click()
@@ -15,15 +15,15 @@ test('basic mock login', async ({ page }) => {
 
 test('basic mock logout', async ({ page }) => {
   await page.goto(`${baseUrl}`)
-  let login = await page.locator('text=Github')
+  let login = await page.locator('text=OAuth')
   await login.click()
   const user = await page.locator('text=Jane Doe')
   await user.click()
   const logout = await page.locator('text=logout')
   await logout.click()
   await page.goto(`${baseUrl}`)
-  login = await page.locator('text=Github')
+  login = await page.locator('text=OAuth')
   const text = await login.innerText()
 
-  await expect(text).toBe('Login with Github')
+  await expect(text).toBe('Login with OAuth')
 })

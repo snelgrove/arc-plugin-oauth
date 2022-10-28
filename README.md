@@ -361,3 +361,9 @@ To configure an OAuth provider (i.e. Github) for a staging or production environ
 - ARC_OAUTH_CLIENT_ID: This is the client ID obtained from registering your OAuth app in the provider console.
 - ARC_OAUTH_CLIENT_SECRET: This is the client secret from the OAuth provider.
 - ARC_OAUTH_REDIRECT_URL: This should be the full URL for redirecting back to your '/auth' endpoint from the third party provider. For instance this might be 'https://staging.mycustomdomain.com/auth'.
+
+### Using Google OAuth
+The Google provider is preconfigured with scopes "openid", "email" and "profile". In addition to the environment variables discussed above, the following should be added to the `@oauth` section of your Architect configuration: 
+- Set `provider google`
+- Update your `include-properties` configuration to include Google user properties, for example:
+`include-properties name given_name family_name picture email email_verified locale`

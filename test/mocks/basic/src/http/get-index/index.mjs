@@ -13,7 +13,9 @@ async function index(req) {
       <body>
         <p>Hello ${name || 'World'}
         You Made it!</p>
-        <form method="post" action="/logout" >
+        <form method="post" action="${
+          process.env.ARC_OAUTH_ROUTE_PREFIX
+        }/logout" >
         <button type="submit">Logout</button></form>
       </body>
     </html>

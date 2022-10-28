@@ -1,3 +1,5 @@
+const { URL } = require('node:url')
+
 module.exports = {
   loginHref: function (req) {
     const redirectAfterAuth = req?.session?.redirectAfterAuth
@@ -63,16 +65,24 @@ module.exports = {
       const allowList = useAllowList
         ? arc.oauth.find((i) => i[0] === 'allow-list')?.[1]
         : ''
+
+      const routePrefix =
+        arc.oauth.find((i) => i[0] === 'route-prefix')?.[1] ?? ''
+      const loginUrl = new URL(`${routePrefix}/login`, 'http://localhost:3333')
+      const authUrl = new URL(`${routePrefix}/auth`, 'http://localhost:3333')
       const testing = {
         ARC_OAUTH_AFTER_AUTH: afterAuthRedirect ? afterAuthRedirect : '/',
         ARC_OAUTH_CUSTOM_AUTHORIZE: customAuthorize ? customAuthorize : '',
-        ARC_OAUTH_UN_AUTH_REDIRECT: unAuthRedirect ? unAuthRedirect : '/login',
+        ARC_OAUTH_UN_AUTH_REDIRECT: unAuthRedirect
+          ? unAuthRedirect
+          : loginUrl.pathname,
         ARC_OAUTH_INCLUDE_PROPERTIES: includeProperties,
         ARC_OAUTH_MATCH_PROPERTY: matchProperty,
         ARC_OAUTH_USE_MOCK: useMock ? 'true' : '',
         ARC_OAUTH_USE_ALLOW_LIST: useAllowList ? 'true' : '',
         ARC_OAUTH_ALLOW_LIST: allowList,
-        ARC_OAUTH_AUTH_URI: 'http://localhost:3333/auth',
+        ARC_OAUTH_ROUTE_PREFIX: routePrefix,
+        ARC_OAUTH_AUTH_URI: authUrl.href,
         ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
         ARC_OAUTH_USER_INFO_URI: `https://api.github.com/user`
       }
@@ -91,9 +101,10 @@ module.exports = {
           ARC_OAUTH_AFTER_AUTH: afterAuthRedirect ? afterAuthRedirect : '/',
           ARC_OAUTH_UN_AUTH_REDIRECT: unAuthRedirect
             ? unAuthRedirect
-            : '/login',
+            : loginUrl.pathname,
           ARC_OAUTH_USE_ALLOW_LIST: useAllowList ? 'true' : '',
           ARC_OAUTH_ALLOW_LIST: allowList,
+          ARC_OAUTH_ROUTE_PREFIX: routePrefix,
           ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
           ARC_OAUTH_USER_INFO_URI: 'https://api.github.com/user'
         },
@@ -104,36 +115,46 @@ module.exports = {
           ARC_OAUTH_AFTER_AUTH: afterAuthRedirect ? afterAuthRedirect : '/',
           ARC_OAUTH_UN_AUTH_REDIRECT: unAuthRedirect
             ? unAuthRedirect
-            : '/login',
+            : loginUrl.pathname,
           ARC_OAUTH_USE_ALLOW_LIST: useAllowList ? 'true' : '',
           ARC_OAUTH_ALLOW_LIST: allowList,
+          ARC_OAUTH_ROUTE_PREFIX: routePrefix,
           ARC_OAUTH_TOKEN_URI: 'https://github.com/login/oauth/access_token',
           ARC_OAUTH_USER_INFO_URI: 'https://api.github.com/user'
         }
       }
     },
     http: function ({ arc, inventory }) {
+      const routePrefix =
+        arc.oauth.find((i) => i[0] === 'route-prefix')?.[1] ?? ''
+      const loginUrl = new URL(`${routePrefix}/login`, 'http://localhost:3333')
+      const logoutUrl = new URL(
+        `${routePrefix}/logout`,
+        'http://localhost:3333'
+      )
+      const authUrl = new URL(`${routePrefix}/auth`, 'http://localhost:3333')
+
       const specificRoutes = arc.oauth.find((i) => i[0] === 'routes') || false
       const useMock = arc.oauth.find((i) => i[0] === 'use-mock')?.[1]
       let endpoints = []
       if (!specificRoutes || specificRoutes.includes('auth'))
         endpoints.push({
           method: 'get',
-          path: '/auth',
+          path: authUrl.pathname,
           config: { runtime: 'nodejs14.x' },
           src: './node_modules/arc-plugin-oauth/src/src/http/get-auth'
         })
       if (!specificRoutes || specificRoutes.includes('logout'))
         endpoints.push({
           method: 'post',
-          path: '/logout',
+          path: logoutUrl.pathname,
           config: { runtime: 'nodejs14.x' },
           src: './node_modules/arc-plugin-oauth/src/src/http/post-logout'
         })
       if (!specificRoutes || specificRoutes.includes('login'))
         endpoints.push({
           method: 'get',
-          path: '/login',
+          path: loginUrl.pathname,
           config: { runtime: 'nodejs14.x' },
           src: './node_modules/arc-plugin-oauth/src/src/http/get-login'
         })

@@ -5,6 +5,9 @@
     "author": "Ryan Bethel",
     "main": "src/index.js",
     "folders": "src",
+    "exports": {
+        ".": "./src/index.js"
+    },
     "scripts": {
         "lint": "eslint src --ignore-pattern node_modules --fix",
         "hydrate:tests": "cd test/mocks && npm i",

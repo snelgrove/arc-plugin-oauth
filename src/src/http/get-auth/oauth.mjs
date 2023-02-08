@@ -46,7 +46,10 @@ function prepareOAuthObject(providerUser) {
   includeProperties.forEach((i) => (filteredDetails[i] = providerUser[i]))
   return {
     oauth: {
-      provider: process.env.ARC_OAUTH_PROVIDER,
+      provider:
+        process.env.ARC_OAUTH_USE_MOCK == 'true'
+          ? 'mock'
+          : process.env.ARC_OAUTH_PROVIDER,
       user: filteredDetails
     }
   }

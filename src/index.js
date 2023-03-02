@@ -1,6 +1,8 @@
 const { URL } = require('node:url')
 const providers = require('./data/providers.json')
 
+const PORT = process.env?.PORT ?? 3333
+
 module.exports = {
   loginHref: function (req) {
     const redirectAfterAuth = req?.session?.redirectAfterAuth
@@ -8,7 +10,7 @@ module.exports = {
       ? process.env.ARC_OAUTH_REDIRECT_URL
       : ''
     if (process.env.ARC_OAUTH_USE_MOCK)
-      return `http://localhost:3333/mock/auth/login${
+      return `http://localhost:${PORT}/mock/auth/login${
         redirectAfterAuth
           ? `?state=${encodeURIComponent(
               JSON.stringify({ redirectAfterAuth })
@@ -74,8 +76,11 @@ module.exports = {
 
       const routePrefix =
         arc.oauth.find((i) => i[0] === 'route-prefix')?.[1] ?? ''
-      const loginUrl = new URL(`${routePrefix}/login`, 'http://localhost:3333')
-      const authUrl = new URL(`${routePrefix}/auth`, 'http://localhost:3333')
+      const loginUrl = new URL(
+        `${routePrefix}/login`,
+        `http://localhost:${PORT}`
+      )
+      const authUrl = new URL(`${routePrefix}/auth`, `http://localhost:${PORT}`)
       const testing = {
         ARC_OAUTH_PROVIDER: provider ? provider : 'github',
         ARC_OAUTH_AFTER_AUTH: afterAuthRedirect ? afterAuthRedirect : '/',
@@ -98,9 +103,9 @@ module.exports = {
         ARC_OAUTH_DEFAULT_SCOPES: providers[provider].OAUTH_DEFAULT_SCOPES
       }
       if (useMock) {
-        testing.ARC_OAUTH_TOKEN_URI = `http://localhost:3333/mock/auth/token`
-        testing.ARC_OAUTH_CODE_URI = `http://localhost:3333/mock/auth/code`
-        testing.ARC_OAUTH_USER_INFO_URI = `http://localhost:3333/mock/auth/user`
+        testing.ARC_OAUTH_TOKEN_URI = `http://localhost:${PORT}/mock/auth/token`
+        testing.ARC_OAUTH_CODE_URI = `http://localhost:${PORT}/mock/auth/code`
+        testing.ARC_OAUTH_USER_INFO_URI = `http://localhost:${PORT}/mock/auth/user`
         testing.ARC_OAUTH_MOCK_ALLOW_LIST = mockAllowList
       }
       return {
@@ -148,12 +153,15 @@ module.exports = {
     http: function ({ arc, inventory }) {
       const routePrefix =
         arc.oauth.find((i) => i[0] === 'route-prefix')?.[1] ?? ''
-      const loginUrl = new URL(`${routePrefix}/login`, 'http://localhost:3333')
+      const loginUrl = new URL(
+        `${routePrefix}/login`,
+        `http://localhost:${PORT}`
+      )
       const logoutUrl = new URL(
         `${routePrefix}/logout`,
-        'http://localhost:3333'
+        `http://localhost:${PORT}`
       )
-      const authUrl = new URL(`${routePrefix}/auth`, 'http://localhost:3333')
+      const authUrl = new URL(`${routePrefix}/auth`, `http://localhost:${PORT}`)
 
       const specificRoutes = arc.oauth.find((i) => i[0] === 'routes') || false
       const useMock = arc.oauth.find((i) => i[0] === 'use-mock')?.[1]
